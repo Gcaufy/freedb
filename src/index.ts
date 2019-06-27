@@ -1,5 +1,8 @@
 import KV from './kv';
 
-module.exports.default = module.exports = {
+export {
   KV
-};
+}
+export default {
+  KV
+}
