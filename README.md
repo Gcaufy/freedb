@@ -37,9 +37,11 @@ kv.set('mykey', 'myvalue').then(res => {
 
 ## API:
 
-* new GitDB.KV(option: DataBaseOption):
 
-    Create a kv instance
+* Create a KV instance
+
+    new GitDB.KV(option: DataBaseOption):
+
     ```
     DataBaseOption {
         // host: github clone links, support both https/ssh links
@@ -55,7 +57,83 @@ kv.set('mykey', 'myvalue').then(res => {
         // debug: show action log or not.
         debug?: boolean;
     }
+
+    CipherOption {
+      // secret key for encrypt
+      secret: string;
+      // customize encrypt algorithm, default value is ase192 encrypt algorithm
+      encode: (str: string): string;
+      // customize decrypt algorithm, default value is ase192 decrypt algorithm
+      decode: (str: string): string;
+    }
     ```
 
->>>>>>> init code
+* KV instance methods
 
+    1. use(db: string): void
+
+    Switch database. can be a non-exist database.
+
+    2. keys(): Promise<KeyRecord[]>
+
+    List all keys in current database;
+
+    3. exist(key: string): Promise<boolean>
+
+    Check a key exist or not in current database;
+
+    4. get(key: string): Promise<KeyRecord>
+
+    Get a key record in current database;
+
+    5. set(key: string, value: string): Promise<KeyRecord>
+
+    Set a value for a key. Will create a key if a key do not exist;
+
+    6. append(key: string): Promise<KeyRecord>
+
+    Append a value for a key. Will create a key if a key do not exist;
+
+
+    ```
+    KeyRecord {
+      // Key content
+      content?: string;
+      // Key name
+      name?: string;
+      // Key content size, if the key do not exist, then size = -1
+      size?: number;
+      // Key git raw url
+      raw_url?: string;
+      // Key git html url
+      html_url?: string;
+      // Key git commit hash if there is
+      commit?: string;
+    }
+    ```
+
+## How to protect your data
+
+There are two way to protect your data.
+
+1. Encrypt you key and value in `CipherOption`
+```
+new GitDB.KV({
+  host: 'git@github.com:Gcuafy-Test/test-database',
+  token: 'mytoken',
+  cipher: {
+    secret: 'my secret key',
+    // Default value is using ase192 encrypt algorithm
+    encode (str) {
+      return MyEncryptMethod(str);
+    },
+    // Default value is using ase192 decrypt algorithm
+    decode (str) {
+      return MyDecryptMethod(str);
+    }
+  }
+})
+```
+
+2. Make the repository private.
+  Simply and easy. Github support private repository
