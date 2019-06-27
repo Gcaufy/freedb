@@ -29,6 +29,8 @@ interface DataBaseOption {
   cipher?: CipherOption;
   // show debug log, default to false
   debug?: boolean;
+  // other props
+  [propName: string]: any;
 }
 
 interface Cache {
@@ -85,6 +87,7 @@ export default class KV {
 
     const QuerierConstructor: { new(option: QuerierOption): Querier } = require('./' + this.host.provider).default;
     const querierOption: QuerierOption = {
+      ...this.option,
       user: this.host.user,
       repo: this.host.repo,
       token: this.option.token,

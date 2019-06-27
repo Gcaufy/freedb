@@ -13,6 +13,7 @@ export interface QuerierOption {
   branch: string;
   debug: boolean;
   token: string;
+  [propName: string]: any;
 };
 
 export interface KeyRecord {

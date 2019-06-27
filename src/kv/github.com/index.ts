@@ -130,14 +130,14 @@ export default class GithubQuerier implements Querier {
     this.logger.log('github', `Set key: ${key}=${value}`);
     const content: string = Buffer.from(value).toString('base64');
     var op: GithubQueryOption = {
-      message: 'GitDB update a key',
+      message: `${this.committer.name} update a key`,
       content: content,
     };
     if (this.shaMap[key]) {
       op.sha = this.shaMap[key];
       this.logger.log('github', `Found cached sha: ${key}(sha) = ${op.sha}`);
     } else {
-      op.message = 'GitDB create a key';
+      op.message = `${this.committer.name} create a key`;
       this.logger.log('github', `Create new file: ${key}`);
     }
     return this.query<GithubAPIUpdateResult>(key, 'PUT', op).then((res: GithubAPIUpdateResult) => {
@@ -170,7 +170,7 @@ export default class GithubQuerier implements Querier {
   delete (key: string): Promise<KeyRecord> {
     this.logger.log('github', `Delete key: ${key}`);
     var op: GithubQueryOption = {
-      message: 'GitDB delete a key',
+      message: `${this.committer.name} delete a key`,
     };
     if (this.shaMap[key]) {
       op.sha = this.shaMap[key];
@@ -200,7 +200,7 @@ export default class GithubQuerier implements Querier {
     const op: any = {
       url: key ? (this.baseURL + '/' + this.option.db + '/' + key) : (this.baseURL + '/' + this.option.db),
       headers: {
-        'User-Agent': 'GitDB',
+        'User-Agent': this.committer.name,
         'Authorization': 'token ' + this.option.token
       }
     };
@@ -208,8 +208,8 @@ export default class GithubQuerier implements Querier {
       op.method = method;
     }
     if (data) {
-      data.committer = this.committer;
-      data.branch = this.option.branch;
+      op.committer = this.committer;
+      op.branch = this.option.branch;
       op.body = data;
       op.json = true;
     }
