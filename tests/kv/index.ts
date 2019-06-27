@@ -4,14 +4,14 @@ import KV from '../../src/kv';
 
 const kv = new KV({
   host: 'git@github.com:Gcaufy-Test/test-database.git',
-  token: '69ccdeabf7517f8c44b3ce37cae7480b4ae25fe9',
+  token: '2bc3e8dc021e726417d77b7cb48c293cc2d820c0',
   debug: true,
   db: 'test',
 });
 
 const kvEncrypt = new KV({
   host: 'git@github.com:Gcaufy-Test/test-database.git',
-  token: '69ccdeabf7517f8c44b3ce37cae7480b4ae25fe9',
+  token: '2bc3e8dc021e726417d77b7cb48c293cc2d820c0',
   debug: true,
   db: 'test-encrypt',
   cipher: 'hello world'
