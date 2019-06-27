@@ -2,16 +2,22 @@ import { expect } from 'chai';
 import request from 'request';
 import KV from '../../src/kv';
 
+const TEST_REPO_TOKEN = process.env.TEST_REPO_TOKEN;
+
+if (!TEST_REPO_TOKEN) {
+  throw 'Token is not set';
+}
+
 const kv = new KV({
   host: 'git@github.com:Gcaufy-Test/test-database.git',
-  token: '2bc3e8dc021e726417d77b7cb48c293cc2d820c0',
+  token: TEST_REPO_TOKEN,
   debug: true,
   db: 'test',
 });
 
 const kvEncrypt = new KV({
   host: 'git@github.com:Gcaufy-Test/test-database.git',
-  token: '2bc3e8dc021e726417d77b7cb48c293cc2d820c0',
+  token: TEST_REPO_TOKEN,
   debug: true,
   db: 'test-encrypt',
   cipher: 'hello world'

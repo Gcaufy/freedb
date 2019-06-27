@@ -19,7 +19,7 @@ const kv = GitDB.KV({
   // If you want to have your own database,
   // Then you need to create a repository and generate a token.
   host: 'git@github.com:Gcaufy-Test/test-database.git',
-  token: '2bc3e8dc021e726417d77b7cb48c293cc2d820c0'
+  token: 'your_github_repo_token'
 });
 
 kv.set('mykey', 'myvalue').then(res => {
