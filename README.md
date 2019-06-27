@@ -14,7 +14,7 @@ npm install freedb --save
 ```
 import Free from 'freedb';
 
-const kv = Free.KV({
+const kv = new Free.KV({
   // This is my public test account and token, only used for test and CI.
   // If you want to have your own database,
   // Then you need to create a repository and generate a token.
