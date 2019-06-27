@@ -1,4 +1,4 @@
-# GitDB
+# freedb 
 
 A lightweight solution to use a cloud Key-Value database based on github.com.
 
@@ -6,15 +6,15 @@ A lightweight solution to use a cloud Key-Value database based on github.com.
 ## Install
 
 ```
-npm install git-db --save
+npm install freedb --save
 ```
 
 ## Usage
 
 ```
-import GitDB from 'git-db';
+import Free from 'freedb';
 
-const kv = GitDB.KV({
+const kv = Free.KV({
   // This is my public test account and token, only used for test and CI.
   // If you want to have your own database,
   // Then you need to create a repository and generate a token.
@@ -40,7 +40,7 @@ kv.set('mykey', 'myvalue').then(res => {
 
 * Create a KV instance
 
-    new GitDB.KV(option: DataBaseOption):
+    new Free.KV(option: DataBaseOption):
 
     ```
     DataBaseOption {

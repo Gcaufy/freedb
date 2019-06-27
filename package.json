@@ -1,5 +1,5 @@
 {
-  "name": "git-db",
+  "name": "freedb",
   "version": "1.0.0",
   "description": "Key-Value Database based on github.com",
   "main": "dist/src/index.js",
