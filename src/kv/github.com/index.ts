@@ -1,6 +1,6 @@
 import request from 'request';
 import { Logger, createLogger } from '../../helper/log'
-import { Querier, QuerierOption, QueryResult } from '../Querier';
+import { Querier, QuerierOption, KeyRecord } from '../Querier';
 
 interface GithubCommitter {
   name: string;
@@ -11,7 +11,7 @@ interface GithubQuerierOption extends QuerierOption {
   committer?: GithubCommitter
 }
 
-interface GithubAPIGetResult extends QueryResult {
+interface GithubAPIGetResult extends KeyRecord {
   encoding: string;
   path: string;
   sha: string;
@@ -79,16 +79,16 @@ export default class GithubQuerier implements Querier {
   /*
    * List all keys in db
    */
-  keys (): Promise<QueryResult[]> {
+  keys (): Promise<KeyRecord[]> {
     this.logger.log('github', `List all keys:`);
     return this.query<GithubAPIGetResult[]>().then((res: GithubAPIGetResult[]) => {
       this.logger.log('github', `Get keys count:` + res.length);
-      var rs: QueryResult[] = [];
+      var rs: KeyRecord[] = [];
       for (var i: number = 0, l: number = res.length; i < l; i++) {
         var tmp: GithubAPIGetResult = res[i];
         if (tmp.type === 'file') {
           this.shaMap[<string>tmp.name] = tmp.sha;
-          rs.push(<QueryResult>{
+          rs.push(<KeyRecord>{
             name: tmp.name,
             path: tmp.path,
             size: tmp.size,
@@ -104,7 +104,7 @@ export default class GithubQuerier implements Querier {
   /*
    * Get key
    */
-  get (key: string): Promise<QueryResult> {
+  get (key: string): Promise<KeyRecord> {
     this.logger.log('github', `Get key: ${key}`);
     return this.query<GithubAPIGetResult>(key).then((res) => {
       if (res.size !== -1) {
@@ -113,7 +113,7 @@ export default class GithubQuerier implements Querier {
       } else {
         this.logger.log('github', `Get key: ${key} is not found`);
       }
-      return <QueryResult>{
+      return <KeyRecord>{
         name: res.name,
         content: res.content,
         size: res.size,
@@ -126,7 +126,7 @@ export default class GithubQuerier implements Querier {
   /*
    * Set key
    */
-  set (key: string, value: string): Promise<QueryResult> {
+  set (key: string, value: string): Promise<KeyRecord> {
     this.logger.log('github', `Set key: ${key}=${value}`);
     const content: string = Buffer.from(value).toString('base64');
     var op: GithubQueryOption = {
@@ -143,7 +143,7 @@ export default class GithubQuerier implements Querier {
     return this.query<GithubAPIUpdateResult>(key, 'PUT', op).then((res: GithubAPIUpdateResult) => {
       this.shaMap[key] = res.content.sha;
       this.logger.log('github', `Set done. Update key sha: ${key}(sha) = ${res.content.sha}`);
-      const qr = <QueryResult>{
+      const qr = <KeyRecord>{
         raw_url: res.content.download_url,
         html_url: res.content.html_url,
         size: res.content.size,
@@ -167,7 +167,7 @@ export default class GithubQuerier implements Querier {
     });
   }
 
-  delete (key: string): Promise<QueryResult> {
+  delete (key: string): Promise<KeyRecord> {
     this.logger.log('github', `Delete key: ${key}`);
     var op: GithubQueryOption = {
       message: 'GitDB delete a key',
@@ -176,15 +176,15 @@ export default class GithubQuerier implements Querier {
       op.sha = this.shaMap[key];
     }
     return this.query<GithubAPIUpdateResult>(key, 'DELETE', op).then((res: GithubAPIUpdateResult) => {
-      return <QueryResult>{
+      return <KeyRecord>{
         commit: res.commit ? res.commit.sha : ''
       };
     }).catch(e => {
       if (e.message.indexOf(`"sha" wasn't supplied`) > -1) {
         this.logger.log('github', `Sha wasn't supplied for ${key}, will try to get sha first.`)
-        return this.get(key).then((res: QueryResult) => {
+        return this.get(key).then((res: KeyRecord) => {
           if (res.size === -1) { // Key is not found
-            return <QueryResult>{
+            return <KeyRecord>{
               commit: ''
             };
           }
@@ -196,7 +196,7 @@ export default class GithubQuerier implements Querier {
     });
   }
 
-  private query<T extends GithubAPIGetResult | GithubAPIUpdateResult | Array<QueryResult>>(key?: string, method?: string, data?: GithubQueryOption): Promise<T> {
+  private query<T extends GithubAPIGetResult | GithubAPIUpdateResult | Array<KeyRecord>>(key?: string, method?: string, data?: GithubQueryOption): Promise<T> {
     const op: any = {
       url: key ? (this.baseURL + '/' + this.option.db + '/' + key) : (this.baseURL + '/' + this.option.db),
       headers: {
@@ -228,7 +228,7 @@ export default class GithubQuerier implements Querier {
               type: 'null'
             });
           } else { // keys return;
-            resolve(<T><QueryResult[]>[]);
+            resolve(<T><KeyRecord[]>[]);
           }
           return;
         } else if (response.statusCode === 201) { // added a file success

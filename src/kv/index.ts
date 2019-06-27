@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { Host, parseHost } from '../helper';
-import { Querier, QuerierOption, QueryResult } from './Querier';
+import { Querier, QuerierOption, KeyRecord } from './Querier';
 
 
 interface EncryptOption {
@@ -32,7 +32,7 @@ interface DataBaseOption {
 }
 
 interface Cache {
-  [key: string]: QueryResult 
+  [key: string]: KeyRecord 
 }
 
 /**
@@ -54,7 +54,7 @@ export default class KV {
   private querier: Querier
 
   private cache: Cache  = {}
-  private cacheList: QueryResult[] = []
+  private cacheList: KeyRecord[] = []
   private encrypt: boolean = false
   private cipher: EncryptOption = { 
     secret: '', 
@@ -143,14 +143,14 @@ export default class KV {
    * Set value for a key. If the key do not exist, then create a new key, otherwise update the key value
    * @param {string} key
    * @param {string} value
-   * @return {Promise<QueryResult>}
+   * @return {Promise<KeyRecord>}
    * @example
    * await kv.set('mykey', 'append-value');
    */
-  set (key: string, value: string): Promise<QueryResult> {
+  set (key: string, value: string): Promise<KeyRecord> {
     const setkey = this.encrypt ? this.cipher.encode(key) : key;
     const setval = this.encrypt ? this.cipher.encode(value) : value;
-    return this.querier.set(setkey, setval).then((res: QueryResult) => {
+    return this.querier.set(setkey, setval).then((res: KeyRecord) => {
       if (this.encrypt) {
         res.content = this.cipher!.decode(res.content || '');
         res.name = this.cipher!.decode(res.name || '');
@@ -164,12 +164,12 @@ export default class KV {
    * Append value to a key, if the key do not exist, then create a new key. Otherwise append value to it.
    * @param {string} key
    * @param {string} value
-   * @return {Promise<QueryResult>}
+   * @return {Promise<KeyRecord>}
    * @example
    * await kv.append('mykey', 'append-value');
    */
-  append (key: string, value: string): Promise<QueryResult> {
-    return this.get(key).then((res: QueryResult) => {
+  append (key: string, value: string): Promise<KeyRecord> {
+    return this.get(key).then((res: KeyRecord) => {
       value = res.content + value;
       return this.set(key, value);
     });
@@ -177,17 +177,17 @@ export default class KV {
 
   /**
    * List all keys in database
-   * @returns {Promise<QueryResult[]>}
+   * @returns {Promise<KeyRecord[]>}
    * @example
    * let keys = await kv.keys();
    * keys.forEach(key => console.log(key.name));
    */
-  keys (): Promise<QueryResult[]> {
+  keys (): Promise<KeyRecord[]> {
     return new Promise((resolve, reject) => {
       if (this.cacheList.length) {
         resolve(this.cacheList);
       } else {
-        return this.querier.keys().then((res: QueryResult[]) => {
+        return this.querier.keys().then((res: KeyRecord[]) => {
           this.cacheList = this.encrypt 
             ? res.map((v) => {
                 v.content = this.cipher.decode(v.content || '');
@@ -209,7 +209,7 @@ export default class KV {
    * var exist = await kv.exist('mykey');
    */
   exist (key: string): Promise<boolean>  {
-    return this.get(key).then((res: QueryResult) => {
+    return this.get(key).then((res: KeyRecord) => {
       return res.size !== -1;
     });
   }
@@ -217,19 +217,19 @@ export default class KV {
   /**
    * Get value of my key
    * @param {string} key
-   * @returns {Promise<QueryResult>}
+   * @returns {Promise<KeyRecord>}
    * @example
    * var key = await kv.get('mykey');
    * console.log(key.content);
    */
-  get (key: string): Promise<QueryResult> {
+  get (key: string): Promise<KeyRecord> {
     return new Promise((resolve, reject) => {
       const cache = this.cache[key];
       if (cache) {
         resolve(cache); 
       } else {
         const getkey = this.encrypt ? this.cipher.encode(key) : key;
-        this.querier.get(getkey).then((res: QueryResult) => {
+        this.querier.get(getkey).then((res: KeyRecord) => {
           if (this.encrypt) {
             res.content = this.cipher!.decode(res.content || '');
             res.name = this.cipher!.decode(res.name || '');
@@ -248,9 +248,9 @@ export default class KV {
    * @example
    * await kv.delete('mykey')
    */
-  delete (key: string): Promise<QueryResult> {
+  delete (key: string): Promise<KeyRecord> {
     const getkey = this.encrypt ? this.cipher.encode(key) : key;
-    return this.querier.delete(key).then((res: QueryResult) => {
+    return this.querier.delete(key).then((res: KeyRecord) => {
       delete this.cache[key];
       return res;
     });
