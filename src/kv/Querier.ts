@@ -1,3 +1,8 @@
+export interface Committer {
+  name: string;
+  email: string;
+};
+
 export interface Querier {
   db (key?: string | undefined): string | undefined
   get (key: string): Promise<KeyRecord>
@@ -13,6 +18,7 @@ export interface QuerierOption {
   branch: string;
   debug: boolean;
   token: string;
+  committer: Committer
 };
 
 export interface KeyRecord {

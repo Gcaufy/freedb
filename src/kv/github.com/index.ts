@@ -1,15 +1,7 @@
 import request from 'request';
 import { Logger, createLogger } from '../../helper/log'
-import { Querier, QuerierOption, KeyRecord } from '../Querier';
+import { Querier, QuerierOption, KeyRecord, Committer } from '../Querier';
 
-interface GithubCommitter {
-  name: string;
-  email: string;
-}
-
-interface GithubQuerierOption extends QuerierOption {
-  committer?: GithubCommitter
-}
 
 interface GithubAPIGetResult extends KeyRecord {
   encoding: string;
@@ -25,7 +17,7 @@ interface GithubQueryOption {
   content?: string;
   sha?: string;
   branch?: string;
-  committer?: GithubCommitter
+  committer?: Committer
 }
 
 interface GithubAPIUpdateResult {
@@ -39,21 +31,16 @@ interface PathShaMap {
 
 export default class GithubQuerier implements Querier {
 
-  private readonly option: GithubQuerierOption
+  private readonly option: QuerierOption
   private baseURL: string
-  private committer: GithubCommitter
+  private committer: Committer
   private shaMap: PathShaMap = {}
   private logger: Logger
 
-  constructor (option: GithubQuerierOption) {
+  constructor (option: QuerierOption) {
     this.option = option;
 
-    this.committer = <GithubCommitter>{
-      name: 'GitDB',
-      email: 'GitDB@notavaliable.com',
-      ...(this.option.committer || {})
-    };
-
+    this.committer = option.committer;
     this.baseURL = `https://api.github.com/repos/${this.option.user}/${this.option.repo}/contents`;
 
     this.logger = createLogger({ debug: this.option.debug });
@@ -214,6 +201,7 @@ export default class GithubQuerier implements Querier {
       op.json = true;
     }
     return new Promise<T>((resolve, reject) => {
+      debugger;
       request(op, (err: Error, response: any, body: string | GithubAPIUpdateResult) => {
         if (err) {
           reject(err);

@@ -13,6 +13,10 @@ const kv = new KV({
   token: TEST_REPO_TOKEN,
   debug: true,
   db: 'test',
+  committer: {
+    name: 'Test',
+    email: 'testagain@testagain.com'
+  },
 });
 
 const kvEncrypt = new KV({

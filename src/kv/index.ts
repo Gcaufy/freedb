@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { Host, parseHost } from '../helper';
-import { Querier, QuerierOption, KeyRecord } from './Querier';
+import { Querier, QuerierOption, KeyRecord, Committer } from './Querier';
 
 
 interface EncryptOption {
@@ -14,6 +14,7 @@ type CipherOption = string | {
   encode? (str: string): string;
   decode? (str: string): string;
 }
+
 
 interface DataBaseOption {
   // host support both https link and ssh link
@@ -29,6 +30,8 @@ interface DataBaseOption {
   cipher?: CipherOption;
   // show debug log, default to false
   debug?: boolean;
+  // git committer
+  committer?: Committer
 }
 
 interface Cache {
@@ -78,6 +81,10 @@ export default class KV {
       db: 'default',
       branch: 'master',
       debug: false,
+      committer: <Committer>{
+        name: 'freedb',
+        email: 'freedb@unknow.email',
+      },
       ...option
     };
 
@@ -91,6 +98,7 @@ export default class KV {
       db: <string>this.option.db,
       branch: <string>this.option.branch,
       debug: <boolean>this.option.debug,
+      committer: <Committer>this.option.committer,
     };
     this.querier = new QuerierConstructor(querierOption);
   }
