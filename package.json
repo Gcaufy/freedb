@@ -7,7 +7,9 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist",
-    "test": "mocha --timeout 10000 -r ts-node/register -r tsconfig-paths/register tests/**/*.ts"
+    "test:golang": "cd golang && go test ./... && cd ..",
+    "test:node": "mocha --timeout 10000 -r ts-node/register -r tsconfig-paths/register tests/**/*.ts",
+    "test": "npm run test:node && npm run test:golang"
   },
   "author": "Gcuafy <gcaufy@gmail.com>",
   "license": "MIT",
