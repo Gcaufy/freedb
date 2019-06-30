@@ -9,6 +9,10 @@ A lightweight solution to use a cloud Key-Value database based on github.com.
 npm install freedb --save
 ```
 
+## Building
+
+See [BUILD.md](BUILD.md).
+
 ## Usage
 
 ```
