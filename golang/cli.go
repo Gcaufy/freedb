@@ -1,14 +1,14 @@
 package main
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
 	"freedb/helper"
 	"freedb/kv"
-	"os"
 	"reflect"
 	"strings"
 
+	prompt "github.com/c-bata/go-prompt"
 	"github.com/spf13/cobra"
 )
 
@@ -57,6 +57,14 @@ func newCli() *Cli {
 		Args: 1,
 		Exec: cli.get,
 	}
+	m["APPEND"] = &Command{
+		Args: 2,
+		Exec: cli.append,
+	}
+	m["KEYS"] = &Command{
+		Args: 0,
+		Exec: cli.keys,
+	}
 	m["CONFIG"] = &Command{
 		Args: 2,
 		Exec: cli.config,
@@ -65,63 +73,17 @@ func newCli() *Cli {
 		Args: 1,
 		Exec: cli.use,
 	}
+	m["DELETE"] = &Command{
+		Args: 1,
+		Exec: cli.delete,
+	}
+	m["EXIT"] = &Command{
+		Args: 0,
+		Exec: func(args []string) {},
+	}
 	cli.commands = m
 	cli.initCLI()
 	return cli
-}
-
-func (c *Cli) run() {
-	fmt.Print("freedb shell version v1.0.0\n")
-	fmt.Print("> ")
-
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		line := scanner.Text()
-
-		quit := c.execLine(line)
-		if quit {
-			break
-		}
-		fmt.Print("> ")
-	}
-	if err := scanner.Err(); err != nil {
-		fmt.Println("Error encountered:", err)
-	}
-}
-
-func (c *Cli) use(args []string) {
-	if c.kv == nil || c.conf.host == nil {
-		c.log.Error("Please config your host first")
-		return
-	}
-	c.kv.Use(args[0])
-}
-
-func (c *Cli) execLine(line string) bool {
-	fields := strings.Fields(line)
-	if len(fields) == 0 {
-		return false
-	}
-	arg0 := strings.ToUpper(fields[0])
-	args := fields[1:]
-	commandName := c.commands[arg0]
-
-	if commandName != nil {
-		argLen := len(args)
-		if commandName.Args == argLen {
-			commandName.Exec(args)
-		} else {
-			c.log.Error("Command \"%s\" expect %d arguments, but %d arguments got.", arg0, commandName.Args, argLen)
-		}
-	} else {
-		c.log.Error("Invalid command")
-	}
-
-	if line == "EXIT" {
-		fmt.Println("Thanks for using freedb")
-		return true
-	}
-	return false
 }
 
 func (c *Cli) initCLI() {
@@ -166,90 +128,127 @@ func (c *Cli) initCLI() {
 	rootCmd.Execute()
 }
 
-func (c *Cli) config(args []string) {
-	item, value := strings.ToUpper(args[0]), args[1]
-	switch item {
-	case "HOST":
-		host, err := helper.ParseHost(value)
-		if err != nil {
-			c.log.Error(err.Error())
-			return
-		}
-		if c.conf.host == nil || c.conf.host.Provider != host.Provider {
-			c.conf.host = host
-			c.kv, err = kv.NewKV(value, c.conf.token)
-			if c.conf.db != "" {
-				c.kv.Use(c.conf.db)
-			}
-			if c.conf.branch != "" {
-				c.kv.SetBranch(c.conf.branch)
-			}
-			if err != nil {
-				c.log.Error(err.Error())
-				return
-			}
-		} else {
-			c.kv.SetHost(value)
-		}
-		break
-	case "TOKEN":
-		c.conf.token = value
-		if c.kv != nil {
-			c.kv.SetToken(value)
-		}
-		break
-	case "DB":
-		c.conf.db = value
-		if c.kv != nil {
-			c.kv.Use(value)
-		}
-		break
-	case "BRANCH":
-		c.conf.branch = value
-		if c.kv != nil {
-			c.kv.SetBranch(value)
-		}
-		break
-	default:
-		c.log.Error("CONFIG command does not recognize key: " + item)
-	}
+type instruct struct {
+	text string
+	desc string
 }
-func (c *Cli) set(args []string) {
-	record, err := c.kv.Set(args[0], args[1])
-	if err != nil {
-		c.log.Error(err.Error())
-		return
-	}
-	c.output(record)
-}
-func (c *Cli) append(args []string) {
-	record, err := c.kv.Append(args[0], args[1])
-	if err != nil {
-		c.log.Error(err.Error())
-		return
-	}
-	c.output(record)
-}
-func (c *Cli) get(args []string) {
-	record, err := c.kv.Get(args[0])
 
-	if err != nil {
-		c.log.Error(fmt.Sprintln(err))
-		return
-	}
-	if record.Name == "" {
-		c.log.Error(fmt.Sprintf("Key \"%s\" not found", args[0]))
-		return
-	}
-	c.output(record)
+var commandInstruct = []*instruct{
+	&instruct{
+		text: "APPEND", desc: "Append a value to a key",
+	},
+	&instruct{
+		text: "CONFIG", desc: "Config options",
+	},
+	&instruct{
+		text: "DELETE", desc: "Delete a key",
+	},
+	&instruct{
+		text: "GET", desc: "Get the value of a key",
+	},
+	&instruct{
+		text: "SET", desc: "Set value to a key",
+	},
+	&instruct{
+		text: "KEYS", desc: "List all keys",
+	},
+	&instruct{
+		text: "USE", desc: "Change database",
+	},
 }
-func (c *Cli) delete(args []string) {
-	record, err := c.kv.Delete(args[0])
-	if err != nil {
-		c.log.Error(fmt.Sprintln(err))
-		return
+var configInstruct = []*instruct{
+	&instruct{
+		text: "HOST", desc: "It's a https/ssh git clone link",
+	},
+	&instruct{
+		text: "TOKEN", desc: "Git OAuth access token",
+	},
+	&instruct{
+		text: "BRANCH", desc: "Git branch",
+	},
+}
+
+func (c *Cli) completer(in prompt.Document) []prompt.Suggest {
+	var rst []prompt.Suggest
+	text := in.TextBeforeCursor()
+	args := strings.Split(text, " ")
+	commandName := args[0]
+
+	var filterArr []*instruct
+	var filterStr string
+
+	l := len(args)
+
+	if l == 1 {
+		filterArr = commandInstruct
+		filterStr = args[0]
+	} else if l == 2 {
+		if strings.ToUpper(commandName) == "CONFIG" {
+			filterArr = configInstruct
+			filterStr = args[1]
+		}
 	}
-	c.output(record)
+	for _, com := range filterArr {
+		if strings.Index(com.text, strings.ToUpper(filterStr)) != -1 {
+			rst = append(rst, prompt.Suggest{
+				Text:        com.text,
+				Description: com.desc,
+			})
+		}
+	}
+	return rst
+}
+
+func (c *Cli) run() {
+	fmt.Print("freedb shell version v1.0.0\n")
+
+	p := prompt.New(
+		func(in string) { c.execLine(in) },
+		c.completer,
+		prompt.OptionShowCompletionAtStart(),
+	)
+	p.Run()
+}
+
+func (c *Cli) execMultipleLine(line string) bool {
+	lines := strings.Split(line, ";")
+	for _, s := range lines {
+		s = strings.TrimSpace(s)
+		if s != "" {
+			c.execLine(s)
+		}
+	}
+	return false
+}
+
+func (c *Cli) execLine(line string) bool {
+	if strings.Index(line, ";") > -1 {
+		return c.execMultipleLine(line)
+	}
+	fields := strings.Fields(line)
+	if len(fields) == 0 {
+		return false
+	}
+	arg0 := strings.ToUpper(fields[0])
+	args := fields[1:]
+	commandName := c.commands[arg0]
+
+	if commandName != nil {
+		argLen := len(args)
+		if commandName.Args == argLen {
+			commandName.Exec(args)
+		} else {
+			c.log.Error("Command \"%s\" expect %d arguments, but %d arguments got.", arg0, commandName.Args, argLen)
+		}
+	} else {
+		c.log.Error("Invalid command")
+	}
+
+	if strings.ToUpper(line) == "EXIT" {
+		fmt.Println("Thanks for using freedb")
+		return true
+	}
+	return false
 }
 
 func (c *Cli) output(kr *kv.KeyRecord) {
@@ -264,4 +263,28 @@ func (c *Cli) output(kr *kv.KeyRecord) {
 		val = str
 	}
 	fmt.Println(val)
+}
+
+func (c *Cli) outputList(krl *[]*kv.KeyRecord) {
+	if len(*krl) == 0 {
+		fmt.Println("[]")
+		return
+	}
+
+	var b []byte
+	var err error
+	if c.conf.shortOutput {
+		var shortlist []string
+		for _, kr := range *krl {
+			shortlist = append(shortlist, kr.Name)
+		}
+		b, err = json.MarshalIndent(shortlist, "", "  ")
+	} else {
+		b, err = json.MarshalIndent(krl, "", "  ")
+	}
+	if err != nil {
+		c.log.Error(fmt.Sprintln(err))
+		return
+	}
+	fmt.Println(string(b))
 }

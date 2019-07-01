@@ -36,7 +36,7 @@ type githubKeyRecord struct {
 	Content  string `json:"content"`
 	Name     string `json:"name"`
 	Size     int    `json:"size"`
-	RawURL   string `json:"raw_url"`
+	RawURL   string `json:"download_url"`
 	HTMLURL  string `json:"html_url"`
 	Commit   string `json:"commit"`
 	Path     string `json:"path"`
@@ -79,8 +79,7 @@ func (q *GithubQuerier) Keys() (*[]*KeyRecord, error) {
 	record, err := q.listReq()
 	if err != nil {
 		if err.Code == 404 {
-			var krl []*KeyRecord
-			return &krl, nil
+			return nil, fmt.Errorf("Repository not found")
 		}
 		return nil, err
 	}

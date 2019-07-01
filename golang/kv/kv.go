@@ -95,6 +95,9 @@ func (kv *KV) Get(key string) (*KeyRecord, error) {
 // Set is the function to update a key or create a new key
 func (kv *KV) Set(key string, value string) (*KeyRecord, error) {
 	record, err := kv.querier.Set(key, value)
+	if record != nil {
+		record.Content = value
+	}
 	return record, err
 }
 

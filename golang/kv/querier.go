@@ -4,12 +4,12 @@ import "encoding/json"
 
 // KeyRecord is the record for a key
 type KeyRecord struct {
-	Content string `mapstructure: "content" json:"content"`
-	Name    string `mapstructure: "name" json:"name"`
-	Size    int    `mapstructure: "size" json:"size"`
-	RawURL  string `mapstructure: "download_url" json:"raw_url"`
-	HTMLURL string `mapstructure: "html_url" json:"html_url"`
-	Commit  string `mapstructure: "commit" json:"commit"`
+	Content string `json:"content,omitempty"`
+	Name    string `json:"name,omitempty"`
+	Size    int    `json:"size,omitempty"`
+	RawURL  string `json:"raw_url,omitempty"`
+	HTMLURL string `json:"html_url,omitempty"`
+	Commit  string `json:"commit,omitempty"`
 }
 
 // Querier is a interface that to query github
