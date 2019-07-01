@@ -1,5 +1,7 @@
 package kv
 
+import "encoding/json"
+
 // KeyRecord is the record for a key
 type KeyRecord struct {
 	Content string `mapstructure: "content" json:"content"`
@@ -37,4 +39,18 @@ type QuerierOption struct {
 type Committer struct {
 	Name  string `json:"name"`
 	Email string `json:"email"`
+}
+
+// Short is a function to get short value fo a KeyRecord
+func (k *KeyRecord) Short() string {
+	return k.Content
+}
+
+// ToString is a function to get a serialized KeyRecord
+func (k *KeyRecord) ToString() (string, error) {
+	b, err := json.MarshalIndent(k, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }

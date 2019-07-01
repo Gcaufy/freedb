@@ -2,4 +2,4 @@ module freedb
 
 go 1.12
 
-require github.com/chromedp/chromedp v0.3.1
+require github.com/spf13/cobra v0.0.5

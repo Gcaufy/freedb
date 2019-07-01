@@ -44,7 +44,7 @@ func NewConsoleLogger() *ConsoleLogger {
 	}
 }
 
-func (l *ConsoleLogger) log(level int, format string, v ...interface{}) {
+func (l *ConsoleLogger) log(file *os.File, level int, format string, v ...interface{}) {
 	msg := &Message{
 		level:   level,
 		content: fmt.Sprintf(format, v...),
@@ -66,36 +66,35 @@ func (l *ConsoleLogger) log(level int, format string, v ...interface{}) {
 	if len(msg.content) > 0 && msg.content[len(msg.content)-1] != '\n' {
 		buf = append(buf, '\n')
 	}
-	os.Stdout.Write(buf)
-	os.Stderr.Write(buf)
+	file.Write(buf)
 }
 
 // Fatal fatal log
 func (l *ConsoleLogger) Fatal(format string, v ...interface{}) {
-	l.log(FATAL, format, v...)
+	l.log(os.Stderr, FATAL, format, v...)
 }
 
 // Error fatal log
 func (l *ConsoleLogger) Error(format string, v ...interface{}) {
-	l.log(ERROR, format, v...)
+	l.log(os.Stderr, ERROR, format, v...)
 }
 
 // Warn fatal log
 func (l *ConsoleLogger) Warn(format string, v ...interface{}) {
-	l.log(WARN, format, v...)
+	l.log(os.Stdout, WARN, format, v...)
 }
 
 // Debug fatal log
 func (l *ConsoleLogger) Debug(format string, v ...interface{}) {
-	l.log(DEBUG, format, v...)
+	l.log(os.Stdout, DEBUG, format, v...)
 }
 
 // Trace fatal log
 func (l *ConsoleLogger) Trace(format string, v ...interface{}) {
-	l.log(TRACE, format, v...)
+	l.log(os.Stdout, TRACE, format, v...)
 }
 
 // Info fatal log
 func (l *ConsoleLogger) Info(format string, v ...interface{}) {
-	l.log(INFO, format, v...)
+	l.log(os.Stdout, INFO, format, v...)
 }
