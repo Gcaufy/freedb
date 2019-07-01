@@ -145,6 +145,10 @@ func (c *Cli) initCLI() {
 			}
 
 			if c.conf.execute != "" {
+				if c.kv == nil {
+					c.log.Error("Please use -h to config host")
+					return
+				}
 				c.execLine(c.conf.execute)
 			} else {
 				c.run()
