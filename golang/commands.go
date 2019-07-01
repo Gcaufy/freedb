@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"freedb/helper"
-	"freedb/kv"
 	"strings"
+
+	helper "github.com/Gcaufy/freedb/golang/helper"
+	kv "github.com/Gcaufy/freedb/golang/kv"
 )
 
 func (c *Cli) use(args []string) {

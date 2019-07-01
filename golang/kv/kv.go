@@ -2,7 +2,8 @@ package kv
 
 import (
 	"fmt"
-	"freedb/helper"
+
+	helper "github.com/Gcaufy/freedb/golang/helper"
 )
 
 // DataBaseOption is KV database option

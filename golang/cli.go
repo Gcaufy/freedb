@@ -3,11 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"freedb/helper"
-	"freedb/kv"
 	"reflect"
 	"strings"
 
+	helper "github.com/Gcaufy/freedb/golang/helper"
+	kv "github.com/Gcaufy/freedb/golang/kv"
 	prompt "github.com/c-bata/go-prompt"
 	"github.com/spf13/cobra"
 )
