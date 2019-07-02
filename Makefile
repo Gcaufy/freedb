@@ -1,9 +1,9 @@
-GO             ?= cd golang && go
+GO             ?= go
 GOOS           ?= $(word 1, $(subst /, " ", $(word 4, $(shell go version))))
 
 MAKEFILE       := $(realpath $(lastword $(MAKEFILE_LIST)))
 ROOT_DIR       := $(shell dirname $(MAKEFILE))
-SOURCES        := $(wildcard *.go golang/*.go golang/*/*.go) $(MAKEFILE)
+SOURCES        := $(wildcard *.go ./*.go ./*/*.go) $(MAKEFILE)
 
 REVISION       := $(shell git log -n 1 --pretty=format:%h -- $(SOURCES))
 BUILD_FLAGS    := -a -ldflags "-X main.revision=$(REVISION) -w -extldflags=$(LDFLAGS)" -tags "$(TAGS)"
@@ -15,7 +15,7 @@ BINARYARM6     := freedb-$(GOOS)_arm6
 BINARYARM7     := freedb-$(GOOS)_arm7
 BINARYARM8     := freedb-$(GOOS)_arm8
 BINARYPPC64LE  := freedb-$(GOOS)_ppc64le
-VERSION        := $(shell awk -F= '/"version": / {print $1}' package.json | tr -d ":" | tr -d "\", :version")
+VERSION        := $(shell awk -F= '/version = "/ {print $2}' version.go | tr -d "\" ")
 RELEASE32      := freedb-$(VERSION)-$(GOOS)_386
 RELEASE64      := freedb-$(VERSION)-$(GOOS)_amd64
 RELEASEARM5    := freedb-$(VERSION)-$(GOOS)_arm5
@@ -52,7 +52,7 @@ endif
 all: bin/$(BINARY)
 
 bin:
-	mkdir -p ../$@
+	mkdir -p $@
 
 ifeq ($(GOOS),windows)
 release: bin/$(BINARY32) bin/$(BINARY64)
@@ -92,26 +92,26 @@ clean:
 	$(RM) -r ../bin
 
 bin/$(BINARY32): $(SOURCES)
-	GOARCH=386 $(GO) build $(BUILD_FLAGS) -o ../$@
+	GOARCH=386 $(GO) build $(BUILD_FLAGS) -o $@
 
 bin/$(BINARY64): $(SOURCES)
-	GOARCH=amd64 $(GO) build $(BUILD_FLAGS) -o ../$@
+	GOARCH=amd64 $(GO) build $(BUILD_FLAGS) -o $@
 
 # https://github.com/golang/go/wiki/GoArm
 bin/$(BINARYARM5): $(SOURCES)
-	GOARCH=arm GOARM=5 $(GO) build $(BUILD_FLAGS) -o ../$@
+	GOARCH=arm GOARM=5 $(GO) build $(BUILD_FLAGS) -o $@
 
 bin/$(BINARYARM6): $(SOURCES)
-	GOARCH=arm GOARM=6 $(GO) build $(BUILD_FLAGS) -o ../$@
+	GOARCH=arm GOARM=6 $(GO) build $(BUILD_FLAGS) -o $@
 
 bin/$(BINARYARM7): $(SOURCES)
-	GOARCH=arm GOARM=7 $(GO) build $(BUILD_FLAGS) -o ../$@
+	GOARCH=arm GOARM=7 $(GO) build $(BUILD_FLAGS) -o $@
 
 bin/$(BINARYARM8): $(SOURCES)
-	GOARCH=arm64 $(GO) build $(BUILD_FLAGS) -o ../$@
+	GOARCH=arm64 $(GO) build $(BUILD_FLAGS) -o $@
 
 bin/$(BINARYPPC64LE): $(SOURCES)
-	GOARCH=ppc64le $(GO) build $(BUILD_FLAGS) -o ../$@
+	GOARCH=ppc64le $(GO) build $(BUILD_FLAGS) -o $@
 
 bin/freedb: bin/$(BINARY) | bin
 	cp -f bin/$(BINARY) bin/freedb

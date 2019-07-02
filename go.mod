@@ -1,4 +1,4 @@
-module github.com/Gcaufy/freedb/golang
+module github.com/Gcaufy/freedb
 
 go 1.12
 

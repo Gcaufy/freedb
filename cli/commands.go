@@ -1,21 +1,21 @@
-package main
+package cli
 
 import (
 	"fmt"
 	"strings"
 
-	helper "github.com/Gcaufy/freedb/golang/helper"
-	kv "github.com/Gcaufy/freedb/golang/kv"
+	helper "github.com/Gcaufy/freedb/helper"
+	kv "github.com/Gcaufy/freedb/kv"
 )
 
-func (c *Cli) use(args []string) {
+func (c *cli) use(args []string) {
 	if c.kv == nil || c.conf.host == nil {
 		c.log.Error("Please config your host first")
 		return
 	}
 	c.kv.Use(args[0])
 }
-func (c *Cli) keys(args []string) {
+func (c *cli) keys(args []string) {
 	if c.kv == nil || c.conf.host == nil {
 		c.log.Error("Please config your host first")
 		return
@@ -29,7 +29,11 @@ func (c *Cli) keys(args []string) {
 	c.outputList(krl)
 }
 
-func (c *Cli) set(args []string) {
+func (c *cli) set(args []string) {
+	if c.kv == nil || c.conf.host == nil {
+		c.log.Error("Please config your host first")
+		return
+	}
 	record, err := c.kv.Set(args[0], args[1])
 	if err != nil {
 		c.log.Error(err.Error())
@@ -37,7 +41,11 @@ func (c *Cli) set(args []string) {
 	}
 	c.output(record)
 }
-func (c *Cli) append(args []string) {
+func (c *cli) append(args []string) {
+	if c.kv == nil || c.conf.host == nil {
+		c.log.Error("Please config your host first")
+		return
+	}
 	record, err := c.kv.Append(args[0], args[1])
 	if err != nil {
 		c.log.Error(err.Error())
@@ -45,7 +53,11 @@ func (c *Cli) append(args []string) {
 	}
 	c.output(record)
 }
-func (c *Cli) get(args []string) {
+func (c *cli) get(args []string) {
+	if c.kv == nil || c.conf.host == nil {
+		c.log.Error("Please config your host first")
+		return
+	}
 	record, err := c.kv.Get(args[0])
 
 	if err != nil {
@@ -58,7 +70,11 @@ func (c *Cli) get(args []string) {
 	}
 	c.output(record)
 }
-func (c *Cli) delete(args []string) {
+func (c *cli) delete(args []string) {
+	if c.kv == nil || c.conf.host == nil {
+		c.log.Error("Please config your host first")
+		return
+	}
 	record, err := c.kv.Delete(args[0])
 	if err != nil {
 		c.log.Error(fmt.Sprintln(err))
@@ -71,7 +87,7 @@ func (c *Cli) delete(args []string) {
 	c.output(record)
 }
 
-func (c *Cli) config(args []string) {
+func (c *cli) config(args []string) {
 	item, value := strings.ToUpper(args[0]), args[1]
 	switch item {
 	case "HOST":
