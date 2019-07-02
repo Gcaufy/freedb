@@ -40,7 +40,8 @@ Flags:
 
 
 ## API:
- Working on it
+
+[GoDoc](https://godoc.org/github.com/Gcaufy/freedb/kv)
 
 ## How to protect your data
 
