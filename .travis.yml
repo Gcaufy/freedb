@@ -3,5 +3,8 @@ language: go
 os:
   - linux
 
+install: 
+  - go install
+
 script:
   - make && make test
