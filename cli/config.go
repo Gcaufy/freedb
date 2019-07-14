@@ -30,6 +30,9 @@ var commandInstruct = []*instruct{
 }
 var configInstruct = []*instruct{
 	&instruct{
+		text: "CACHE", desc: "Cache query result",
+	},
+	&instruct{
 		text: "HOST", desc: "It's a https/ssh git clone link",
 	},
 	&instruct{

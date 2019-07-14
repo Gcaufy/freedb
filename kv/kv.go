@@ -16,10 +16,13 @@ type DataBaseOption struct {
 
 // KV is a key-value storage
 type KV struct {
-	querier Querier
+	querier  Querier
+	UseCache bool
 }
 
 var querierMap = make(map[string]func(option *QuerierOption) Querier)
+
+var cache = make(map[string]*KeyRecord)
 
 // NewKV will create a KV instace
 func NewKV(host string, token string) (*KV, error) {
@@ -55,7 +58,8 @@ func NewKV(host string, token string) (*KV, error) {
 	querier := con(op)
 
 	return &KV{
-		querier: querier,
+		querier:  querier,
+		UseCache: true,
 	}, nil
 }
 
@@ -86,9 +90,17 @@ func (kv *KV) Use(db string) {
 
 // Get is the function to get a key
 func (kv *KV) Get(key string) (*KeyRecord, error) {
+	if kv.UseCache {
+		if cacheRecord, ok := cache[key]; ok {
+			return cacheRecord, nil
+		}
+	}
 	record, err := kv.querier.Get(key)
 	if err != nil {
 		return nil, err
+	}
+	if kv.UseCache {
+		cache[key] = record
 	}
 	return record, nil
 }
@@ -99,6 +111,9 @@ func (kv *KV) Set(key string, value string) (*KeyRecord, error) {
 	if record != nil {
 		record.Content = value
 	}
+	if kv.UseCache {
+		cache[key] = record
+	}
 	return record, err
 }
 
@@ -108,7 +123,6 @@ func (kv *KV) Append(key string, value string) (*KeyRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	value = record.Content + value
 	return kv.Set(key, value)
 }
@@ -116,6 +130,9 @@ func (kv *KV) Append(key string, value string) (*KeyRecord, error) {
 // Delete is the function to delete a key
 func (kv *KV) Delete(key string) (*KeyRecord, error) {
 	record, err := kv.querier.Delete(key)
+	if kv.UseCache {
+		delete(cache, key)
+	}
 	return record, err
 }
 
@@ -123,4 +140,11 @@ func (kv *KV) Delete(key string) (*KeyRecord, error) {
 func (kv *KV) Keys() (*[]*KeyRecord, error) {
 	record, err := kv.querier.Keys()
 	return record, err
+}
+
+// ClearCache can clear the current cache
+func (kv *KV) ClearCache() {
+	for k := range cache {
+		delete(cache, k)
+	}
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	helper "github.com/Gcaufy/freedb/helper"
 	kv "github.com/Gcaufy/freedb/kv"
@@ -21,6 +22,7 @@ type Config struct {
 	branch      string
 	execute     string
 	shortOutput bool
+	cache       bool
 }
 
 // Cli type
@@ -38,6 +40,7 @@ func Run() {
 		conf: &Config{
 			db:     "default",
 			branch: "master",
+			cache:  true,
 		},
 	}
 
@@ -168,6 +171,17 @@ func (c *cli) execLine(line string) bool {
 		return true
 	}
 	return false
+}
+
+func (c *cli) timeUse(fn func()) {
+	if c.conf.shortOutput {
+		fn()
+	} else {
+		s := int64(time.Now().UnixNano() / (1000 * 1000))
+		fn()
+		e := int64(time.Now().UnixNano() / (1000 * 1000))
+		fmt.Printf("(%d ms)\n", e-s)
+	}
 }
 
 func (c *cli) output(kr *kv.KeyRecord) {
