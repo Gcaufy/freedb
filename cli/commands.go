@@ -118,6 +118,9 @@ func (c *cli) config(args []string) {
 			if c.conf.branch != "" {
 				c.kv.SetBranch(c.conf.branch)
 			}
+			if c.conf.secret != "" {
+				c.kv.SetSecret(c.conf.secret)
+			}
 			if err != nil {
 				c.log.Error(err.Error())
 				return

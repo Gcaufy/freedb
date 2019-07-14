@@ -23,6 +23,7 @@ type Config struct {
 	execute     string
 	shortOutput bool
 	cache       bool
+	secret      string
 }
 
 // Cli type
@@ -82,6 +83,7 @@ func (c *cli) initCLI() {
 	rootCmd.PersistentFlags().StringVarP(&c.conf.db, "database", "d", "default", "Config using database.")
 	rootCmd.PersistentFlags().StringVarP(&c.conf.branch, "branch", "b", "master", "Config using branch.")
 	rootCmd.PersistentFlags().StringVarP(&c.conf.token, "token", "t", "", "Access token for the git repository.")
+	rootCmd.PersistentFlags().StringVarP(&c.conf.secret, "key", "k", "", "Secret key for encrypt and decrypt.")
 	rootCmd.PersistentFlags().StringVarP(&c.conf.hostStr, "host", "h", "", "Connect to host, which is a https/ssh git clone link.")
 	rootCmd.PersistentFlags().StringVarP(&c.conf.execute, "execute", "e", "", "Execute command and quit.")
 	rootCmd.PersistentFlags().BoolVarP(&helpFlag, "help", "?", false, "Display the help")

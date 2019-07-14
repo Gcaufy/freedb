@@ -17,6 +17,7 @@ type DataBaseOption struct {
 // KV is a key-value storage
 type KV struct {
 	querier  Querier
+	secret   string
 	UseCache bool
 }
 
@@ -78,6 +79,11 @@ func (kv *KV) SetBranch(branch string) {
 	kv.querier.setBranch(branch)
 }
 
+// SetSecret is a function to set the encrypt/decrypt secret key
+func (kv *KV) SetSecret(key string) {
+	kv.secret = toMD5(key)
+}
+
 // SetToken is a functio to update token
 func (kv *KV) SetToken(token string) {
 	kv.querier.setToken(token)
@@ -95,24 +101,39 @@ func (kv *KV) Get(key string) (*KeyRecord, error) {
 			return cacheRecord, nil
 		}
 	}
+	oldkey := key
+	if kv.secret != "" {
+		key = encrypt(key, kv.secret)
+	}
 	record, err := kv.querier.Get(key)
 	if err != nil {
 		return nil, err
 	}
+	if kv.secret != "" {
+		if record.Content != "" {
+			record.Content = decrypt(record.Content, kv.secret)
+		}
+	}
 	if kv.UseCache {
-		cache[key] = record
+		cache[oldkey] = record
 	}
 	return record, nil
 }
 
 // Set is the function to update a key or create a new key
 func (kv *KV) Set(key string, value string) (*KeyRecord, error) {
+	oldkey := key
+	oldval := value
+	if kv.secret != "" {
+		key = encrypt(key, kv.secret)
+		value = encrypt(value, kv.secret)
+	}
 	record, err := kv.querier.Set(key, value)
 	if record != nil {
-		record.Content = value
+		record.Content = oldval
 	}
 	if kv.UseCache {
-		cache[key] = record
+		cache[oldkey] = record
 	}
 	return record, err
 }
@@ -129,6 +150,9 @@ func (kv *KV) Append(key string, value string) (*KeyRecord, error) {
 
 // Delete is the function to delete a key
 func (kv *KV) Delete(key string) (*KeyRecord, error) {
+	if kv.secret != "" {
+		key = encrypt(key, kv.secret)
+	}
 	record, err := kv.querier.Delete(key)
 	if kv.UseCache {
 		delete(cache, key)
