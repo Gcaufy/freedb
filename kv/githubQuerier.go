@@ -224,6 +224,11 @@ func (q *GithubQuerier) getReq(key string) (*githubKeyRecord, *githubError) {
 	kr := &githubKeyRecord{}
 	decodeErr := json.Unmarshal(*body, kr)
 	if decodeErr != nil {
+		var gkrl []*githubKeyRecord
+		decodeErr := json.Unmarshal(*body, &gkrl)
+		if decodeErr == nil {
+			return nil, &githubError{Message: fmt.Sprintf("'%s' is a folder", key)}
+		}
 		return nil, &githubError{Message: decodeErr.Error()}
 	}
 	return kr, nil
