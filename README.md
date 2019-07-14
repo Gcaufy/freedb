@@ -1,6 +1,8 @@
 # freedb 
 
-A lightweight solution to use a cloud Key-Value database based on github.com.
+A lightweight solution to use a cloud Key-Value database based on 
+github.com.
+
 Also available in Node.js [freedb.js](https://github.com/Gcaufy/freedb.js)
 
 ![freedb](https://user-images.githubusercontent.com/2182004/60488728-50dae280-9cd5-11e9-933b-b6798f87af95.png)
