@@ -1,6 +1,7 @@
 # freedb 
 
 A lightweight solution to use a cloud Key-Value database based on github.com.
+Also available in Node.js [freedb.js](https://github.com/Gcaufy/freedb.js)
 
 ![freedb](https://user-images.githubusercontent.com/2182004/60488728-50dae280-9cd5-11e9-933b-b6798f87af95.png)
 
@@ -28,6 +29,7 @@ Flags:
   -?, --help              Display the help
   -h, --host string       Connect to host, which is a https/ssh git clone link.
   -s, --short-output      Only output the value
+  -k, --key string        Secret key for encrypt and decrypt.
   -t, --token string      Access token for the git repository.
 ```
 
@@ -47,3 +49,4 @@ Flags:
 
 1. Make the repository private.
   Simply and easy. Github support private repository
+2. Use `-k` option to add a secret key. Then all key and value will be encrypt with AES.
